@@ -6,6 +6,8 @@ __global__ void helloCUDA() {
     printf("Hello form GPU thread %d!\n", threadIdx.x);
 }
 
+__global__ void 
+
 int main() {
     // 1. GPU 장치 개수 확인
     int deviceCount;
