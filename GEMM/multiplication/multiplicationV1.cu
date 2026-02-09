@@ -90,7 +90,7 @@ int main() {
     }
     */
 
-    // 메모리 해제
+    // 메모리 해제-skrr
     cudaFreeHost(A);
     cudaFreeHost(B);
     cudaFreeHost(C);
