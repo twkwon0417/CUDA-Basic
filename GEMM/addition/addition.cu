@@ -34,8 +34,6 @@ int main() {
     A[i] = i;
   }
 
-  cudaMemcpy(devA, A, N*N*sizeof(int), cudaMemcpyDefault);
-
   int *B;
   int* devB = nullptr;
   cudaMallocHost((void **)&B, sizeof(int) * N * N);
@@ -45,13 +43,10 @@ int main() {
     B[i] = i;
   }
 
-  cudaMemcpy(devB, B, N*N*sizeof(int), cudaMemcpyDefault);
-
   int *C;
   int* devC = nullptr;  
   cudaMallocHost((void **)&C, sizeof(int) * N * N);
   cudaMalloc((void **)&devC, sizeof(int) * N * N);
-  cudaMemcpy(devC, C, N*N*sizeof(int), cudaMemcpyDefault);
 
   cudaStream_t stream;
   cudaStreamCreate(&stream);
@@ -70,20 +65,25 @@ int main() {
   int blocks = (N * N + threads - 1) / threads;
 
   cudaEventRecord(start, stream);
+
+  cudaMemcpy(devA, A, N*N*sizeof(int), cudaMemcpyDefault);
+  cudaMemcpy(devB, B, N*N*sizeof(int), cudaMemcpyDefault);
+
   // arg3: block내에서 사용되는 shared memory의 크기
   addition<<<blocks, threads, 0, stream>>>(devA, devB, devC);
-  cudaEventRecord(stop, stream);
 
   // cudaDeviceSynchronize();
   cudaStreamSynchronize(stream);
 
-  float elapsedTime;
-  cudaEventElapsedTime(&elapsedTime, start, stop);
-  cout << "Kernel execution time: " << elapsedTime << " ms" << "\n";
-
   cudaMemcpy(C, devC, N*N*sizeof(int), cudaMemcpyDeviceToHost);
   // 명시적으로 써있는 아래아 같은 함수 선호
   // cudaMemcpyHostToDevice();
+
+  cudaEventRecord(stop, stream);
+  cudaEventSynchronize(stop);
+  float elapsedTime;
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  cout << "Kernel execution time: " << elapsedTime << " ms" << "\n";
 
   long long expected = 0;
   long long returned = 0;
